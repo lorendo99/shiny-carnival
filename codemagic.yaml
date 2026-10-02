@@ -15,14 +15,14 @@ workflows:
           source: true
     scripts:
       - name: Install pnpm
-        script: npm install --global pnpm@10.26.1
+        script: npx --yes pnpm@10.26.1 --version
       - name: Install FixMate Mobile workspace dependencies
-        script: pnpm install --filter "@workspace/fixmate-mobile..." --frozen-lockfile
+        script: npx --yes pnpm@10.26.1 install --filter "@workspace/fixmate-mobile..." --frozen-lockfile
       - name: Typecheck FixMate Mobile
-        script: pnpm --filter @workspace/fixmate-mobile run typecheck
+        script: npx --yes pnpm@10.26.1 --filter @workspace/fixmate-mobile run typecheck
       - name: Generate native projects
-        script: pnpm --filter @workspace/fixmate-mobile exec expo prebuild --no-install --clean
+        script: npx --yes pnpm@10.26.1 --filter @workspace/fixmate-mobile exec expo prebuild --no-install --clean
       - name: Export Expo bundles
-        script: pnpm --filter @workspace/fixmate-mobile exec expo export --platform all
+        script: npx --yes pnpm@10.26.1 --filter @workspace/fixmate-mobile exec expo export --platform all
     artifacts:
       - artifacts/fixmate-mobile/dist/**
