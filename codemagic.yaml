@@ -18,6 +18,8 @@ workflows:
         script: npx --yes pnpm@10.26.1 --version
       - name: Install FixMate Mobile workspace dependencies
         script: npx --yes pnpm@10.26.1 install --filter "@workspace/fixmate-mobile..." --frozen-lockfile
+      - name: Build shared API client types
+        script: npx --yes pnpm@10.26.1 --filter @workspace/fixmate-mobile exec tsc --build ../../lib/api-client-react/tsconfig.json --force --pretty false
       - name: Typecheck FixMate Mobile
         script: npx --yes pnpm@10.26.1 --filter @workspace/fixmate-mobile run typecheck
       - name: Generate native projects
