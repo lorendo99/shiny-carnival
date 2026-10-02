@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/hearthstone-ledger/"
+title = "Hearthstone Ledger"
+description = "A camera-first personal cashflow ledger inspired by the selected Workbench Ledger Camera design, for capturing receipts and tracking movements across household drawers."
+version = "1.0.0"
+id = "artifacts/hearthstone-ledger"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/hearthstone-ledger/" ]
+localPort = 19068
+
+[services.development]
+run = "pnpm --filter @workspace/hearthstone-ledger run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hearthstone-ledger", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/hearthstone-ledger/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19068"
+BASE_PATH = "/hearthstone-ledger/"

@@ -1,0 +1,2006 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: diagnoses
+    description: AI-assisted repair diagnosis operations
+  - name: storage
+    description: Private media upload operations
+  - name: marketplace
+    description: Customer jobs and engineer quotes
+  - name: help
+    description: Authenticated FixMate help and notifications
+  - name: account
+    description: Signed-in account management
+  - name: inventory
+    description: Household inventory, maintenance, and repair records
+  - name: repair-reports
+    description: Explicitly selected repair reports
+paths:
+  /account:
+    delete:
+      operationId: deleteAccount
+      tags: [account]
+      summary: Permanently delete the signed-in user's FixMate account
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountDeletionResult" }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "500": { description: Account deletion failed, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /help/chat:
+    post:
+      operationId: helpChat
+      tags: [help]
+      summary: Ask the FixMate help assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HelpChatInput" }
+      responses:
+        "200":
+          description: Assistant answer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HelpChatResult" }
+        "400": { description: Invalid question, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "429": { description: Rate limit reached, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "502": { description: Assistant unavailable, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [help]
+      summary: List notifications for the signed-in user
+      responses:
+        "200":
+          description: Chronological notifications
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /inventory/items:
+    get:
+      operationId: listInventoryItems
+      tags: [inventory]
+      summary: List the signed-in user's household items
+      responses:
+        "200":
+          description: Household inventory
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryItem" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    post:
+      operationId: createInventoryItem
+      tags: [inventory]
+      summary: Add a household item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryItemInput" }
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryItem" }
+        "400": { description: Invalid item, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: getInventoryItem
+      tags: [inventory]
+      summary: Get a household item with its records
+      responses:
+        "200":
+          description: Household item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryItemDetail" }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    patch:
+      operationId: updateInventoryItem
+      tags: [inventory]
+      summary: Update a household item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryItemUpdate" }
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryItem" }
+        "400": { description: Invalid item, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    delete:
+      operationId: deleteInventoryItem
+      tags: [inventory]
+      summary: Delete a household item and its records
+      responses:
+        "204": { description: Item deleted }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/diagnoses:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: listInventoryDiagnoses
+      tags: [inventory]
+      summary: List diagnosis history for an item
+      responses:
+        "200":
+          description: Diagnosis history
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/DiagnosisResult" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/documents:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: listInventoryDocuments
+      tags: [inventory]
+      summary: List private documents attached to an item
+      responses:
+        "200":
+          description: Item documents
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryDocument" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    post:
+      operationId: createInventoryDocument
+      tags: [inventory]
+      summary: Save metadata for an uploaded private document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryDocumentInput" }
+      responses:
+        "201":
+          description: Document saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryDocument" }
+        "400": { description: Invalid document, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/documents/{documentId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+      - name: documentId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    delete:
+      operationId: deleteInventoryDocument
+      tags: [inventory]
+      summary: Delete an item document
+      responses:
+        "204": { description: Document deleted }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Document not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/reminders:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: listInventoryReminders
+      tags: [inventory]
+      summary: List maintenance reminders for an item
+      responses:
+        "200":
+          description: Maintenance reminders
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryReminder" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    post:
+      operationId: createInventoryReminder
+      tags: [inventory]
+      summary: Add an item maintenance reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryReminderInput" }
+      responses:
+        "201":
+          description: Reminder created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryReminder" }
+        "400": { description: Invalid reminder, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/reminders/{reminderId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+      - name: reminderId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    patch:
+      operationId: updateInventoryReminder
+      tags: [inventory]
+      summary: Update or complete an item maintenance reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryReminderUpdate" }
+      responses:
+        "200":
+          description: Reminder updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryReminder" }
+        "400": { description: Invalid reminder, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Reminder not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/repairs:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: listInventoryRepairs
+      tags: [inventory]
+      summary: List before and after repair records
+      responses:
+        "200":
+          description: Repair records
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryRepairRecord" } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+    post:
+      operationId: createInventoryRepair
+      tags: [inventory]
+      summary: Create a before and after repair record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryRepairRecordInput" }
+      responses:
+        "201":
+          description: Repair record created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryRepairRecord" }
+        "400": { description: Invalid repair record, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /inventory/items/{itemId}/repairs/{repairId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+      - name: repairId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    patch:
+      operationId: updateInventoryRepair
+      tags: [inventory]
+      summary: Update a before and after repair record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryRepairRecordUpdate" }
+      responses:
+        "200":
+          description: Repair record updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryRepairRecord" }
+        "400": { description: Invalid repair record, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Repair record not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /repair-reports:
+    post:
+      operationId: createRepairReportShare
+      tags: [repair-reports]
+      summary: Create an opaque report with explicitly approved fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairReportShareInput" }
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairReportShare" }
+        "400": { description: Invalid report selection, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Item or repair record not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /repair-reports/{reportId}:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema: { type: string, minLength: 1 }
+    get:
+      operationId: getRepairReportShare
+      tags: [repair-reports]
+      summary: Read an approved repair report using its opaque identifier
+      responses:
+        "200":
+          description: Shared repair report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairReport" }
+        "404": { description: Report not found or expired, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /diagnoses:
+    get:
+      operationId: listDiagnoses
+      tags: [diagnoses]
+      summary: List the signed-in user's diagnoses
+      description: Returns the user's most recent persisted diagnosis results.
+      responses:
+        "200":
+          description: Diagnosis history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiagnosisResult"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Diagnosis history unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createDiagnosis
+      tags: [diagnoses]
+      summary: Diagnose a broken item
+      description: Returns a structured repair diagnosis using the item type, symptoms, and optional uploaded media evidence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiagnosisInput"
+      responses:
+        "200":
+          description: Diagnosis generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosisResult"
+        "400":
+          description: Invalid diagnosis request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: Uploaded media is too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "415":
+          description: Uploaded media type is unsupported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Diagnosis rate limit or media capacity reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Diagnosis unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /appliance-label:
+    post:
+      operationId: extractApplianceLabel
+      tags: [diagnoses]
+      summary: Extract appliance details from a label photo
+      description: Reads a user-uploaded appliance label photo and returns only legible identifying details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplianceLabelInput"
+      responses:
+        "200":
+          description: Appliance details extracted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplianceLabelResult"
+        "400": { description: Invalid label photo, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "413": { description: Uploaded photo is too large, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "415": { description: Uploaded file is not a supported photo, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "429": { description: Label extraction rate limit or media capacity reached, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "500": { description: Label extraction unavailable, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /diagnoses/{diagnosisId}/assistant:
+    post:
+      operationId: askDiagnosisAssistant
+      tags: [diagnoses]
+      summary: Ask a private follow-up question about a diagnosis
+      parameters:
+        - name: diagnosisId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DiagnosisAssistantInput" }
+      responses:
+        "200":
+          description: Contextual assistant answer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DiagnosisAssistantResult" }
+        "400": { description: Invalid question, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Diagnosis not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "429": { description: Rate limit reached, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "502": { description: Assistant unavailable, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /premium/sync:
+    post:
+      operationId: syncPremium
+      tags: [diagnoses]
+      summary: Verify the signed-in user's FixMate Plus entitlement
+      responses:
+        "200":
+          description: Verified premium status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PremiumSyncResult" }
+        "401": { description: Sign-in required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "502": { description: RevenueCat verification unavailable, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Request a direct media upload URL
+      description: Validates media metadata and returns a short-lived URL for a direct upload to private object storage.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+        "400":
+          description: Invalid upload metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: File is too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "415":
+          description: File type is unsupported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Upload rate limit reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /marketplace/engineers/me:
+    get:
+      operationId: getEngineerProfile
+      tags: [marketplace]
+      summary: Get the signed-in engineer profile
+      responses:
+        "200":
+          description: Engineer profile
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/EngineerProfile"
+                  - type: "null"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+    post:
+      operationId: registerEngineer
+      tags: [marketplace]
+      summary: Register or update an engineer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EngineerRegistrationInput" }
+      responses:
+        "200":
+          description: Engineer profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EngineerProfile" }
+        "400":
+          description: Invalid profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/engineers/me/payout-onboarding:
+    post:
+      operationId: createEngineerPayoutOnboarding
+      tags: [marketplace]
+      summary: Create a Stripe Connect onboarding link for the signed-in engineer
+      responses:
+        "200":
+          description: One-time onboarding link
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PayoutOnboardingResponse" }
+        "409":
+          description: Engineer profile is required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "502":
+          description: Stripe Connect onboarding is unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/blocks:
+    get:
+      operationId: listMarketplaceBlocks
+      tags: [marketplace]
+      summary: List users blocked by the signed-in user
+      responses:
+        "200":
+          description: Blocked users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MarketplaceBlock" }
+    post:
+      operationId: blockMarketplaceUser
+      tags: [marketplace]
+      summary: Block a marketplace participant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketplaceBlockInput" }
+      responses:
+        "201":
+          description: Blocked user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketplaceBlock" }
+        "400": { description: Invalid block, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/blocks/{blockedUserId}:
+    delete:
+      operationId: unblockMarketplaceUser
+      tags: [marketplace]
+      summary: Unblock a marketplace participant
+      parameters:
+        - in: path
+          name: blockedUserId
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Unblocked user }
+  /marketplace/reports:
+    post:
+      operationId: createMarketplaceReport
+      tags: [marketplace]
+      summary: Report unsafe or inappropriate marketplace content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketplaceReportInput" }
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketplaceReport" }
+        "400": { description: Invalid report, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/admin/reports:
+    get:
+      operationId: listMarketplaceReports
+      tags: [marketplace]
+      summary: List marketplace reports for moderation
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [open, resolved, dismissed]
+            default: open
+      responses:
+        "200":
+          description: Moderation queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MarketplaceReport" }
+        "403": { description: Admin access required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/admin/reports/{reportId}:
+    patch:
+      operationId: updateMarketplaceReport
+      tags: [marketplace]
+      summary: Resolve or dismiss a marketplace report
+      parameters:
+        - in: path
+          name: reportId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketplaceReportUpdateInput" }
+      responses:
+        "200":
+          description: Updated report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketplaceReport" }
+        "403": { description: Admin access required, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/jobs:
+    get:
+      operationId: listRepairJobs
+      tags: [marketplace]
+      summary: List repair jobs
+      parameters:
+        - in: query
+          name: scope
+          schema:
+            type: string
+            enum: [mine, open]
+            default: mine
+      responses:
+        "200":
+          description: Repair jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RepairJob" }
+    post:
+      operationId: createRepairJob
+      tags: [marketplace]
+      summary: Post a repair job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairJobInput" }
+      responses:
+        "201":
+          description: Posted job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "400":
+          description: Invalid job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/public-jobs:
+    get:
+      operationId: listPublicRepairJobs
+      tags: [marketplace]
+      summary: List open repair jobs visible to anyone
+      description: Returns open job details without customer identity, photos, quotes, or private messages.
+      responses:
+        "200":
+          description: Public open jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PublicRepairJob" }
+  /marketplace/jobs/{jobId}/timeline:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+    patch:
+      operationId: updateRepairJobTimeline
+      tags: [marketplace]
+      summary: Update a manual repair timeline step
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairTimelineInput" }
+      responses:
+        "200":
+          description: Updated repair job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "400": { description: Invalid timeline step, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Job not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/jobs/{jobId}/reminders:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+    post:
+      operationId: createRepairReminder
+      tags: [marketplace]
+      summary: Add a repair reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairReminderInput" }
+      responses:
+        "201":
+          description: Added reminder
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "400": { description: Invalid reminder, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Job not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/jobs/{jobId}/reminders/{reminderId}:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+      - in: path
+        name: reminderId
+        required: true
+        schema: { type: string }
+    patch:
+      operationId: updateRepairReminder
+      tags: [marketplace]
+      summary: Complete or reopen a repair reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairReminderUpdateInput" }
+      responses:
+        "200":
+          description: Updated repair job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "400": { description: Invalid reminder, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+        "404": { description: Reminder not found, content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } } }
+  /marketplace/jobs/{jobId}/responses:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+    get:
+      operationId: listJobResponses
+      tags: [marketplace]
+      summary: List engineer responses for a job
+      responses:
+        "200":
+          description: Job responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/JobResponse" }
+    put:
+      operationId: updateJobResponse
+      tags: [marketplace]
+      summary: Set interest in an open job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JobResponseInput" }
+      responses:
+        "200":
+          description: Updated response
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobResponse" }
+  /marketplace/jobs/{jobId}/messages:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+    get:
+      operationId: listJobMessages
+      tags: [marketplace]
+      summary: List permitted job messages
+      responses:
+        "200":
+          description: Job messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/JobMessage" }
+    post:
+      operationId: sendJobMessage
+      tags: [marketplace]
+      summary: Send a job message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JobMessageInput" }
+      responses:
+        "201":
+          description: Sent message
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobMessage" }
+  /marketplace/jobs/{jobId}/photos/{photoIndex}:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+      - in: path
+        name: photoIndex
+        required: true
+        schema: { type: integer, minimum: 0, maximum: 4 }
+    get:
+      operationId: readJobPhoto
+      tags: [marketplace]
+      summary: Read an authorized private job photo
+      responses:
+        "200": { description: Private photo }
+        "404":
+          description: Photo not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/jobs/{jobId}/quotes:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string }
+    get:
+      operationId: listRepairQuotes
+      tags: [marketplace]
+      summary: List quotes for a job
+      responses:
+        "200":
+          description: Job quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RepairQuote" }
+    post:
+      operationId: createRepairQuote
+      tags: [marketplace]
+      summary: Submit an engineer quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairQuoteInput" }
+      responses:
+        "201":
+          description: Submitted quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairQuote" }
+        "400":
+          description: Invalid quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Quote already exists or job unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/accept:
+    post:
+      operationId: acceptRepairQuote
+      tags: [marketplace]
+      summary: Start or resume Stripe Checkout after both parties agree to a quote
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Checkout created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutResponse" }
+        "409":
+          description: Both parties have not agreed to this quote or the payment is no longer available
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/price-offers:
+    post:
+      operationId: createRepairPriceOffer
+      tags: [marketplace]
+      summary: Propose a counter-price for a repair quote
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairPriceOfferInput" }
+      responses:
+        "200":
+          description: Updated quote with the counteroffer history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairQuote" }
+        "409":
+          description: Quote is no longer open for negotiation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/price-offers/{offerId}/agree:
+    post:
+      operationId: agreeRepairPriceOffer
+      tags: [marketplace]
+      summary: Record one party's agreement to a proposed price
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Agreement status, quote history, and Checkout URL when available
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairPriceOfferAgreementResponse" }
+        "409":
+          description: Price is not awaiting agreement or the job has already been selected
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/price-offers/{offerId}/decline:
+    post:
+      operationId: declineRepairPriceOffer
+      tags: [marketplace]
+      summary: Decline a proposed price without rejecting the repair quote
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated quote with the declined counteroffer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairQuote" }
+        "409":
+          description: Price offer is no longer open
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/confirm-payment:
+    post:
+      operationId: confirmRepairQuotePayment
+      tags: [marketplace]
+      summary: Verify payment for the selected quote
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated repair job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "409":
+          description: Payment is not complete
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /marketplace/quotes/{quoteId}/reject:
+    post:
+      operationId: rejectRepairQuote
+      tags: [marketplace]
+      summary: Reject a quote
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Rejected quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairQuote" }
+  /marketplace/quotes/{quoteId}/cancel-payment:
+    post:
+      operationId: cancelRepairPayment
+      tags: [marketplace]
+      summary: Cancel pending payment selection
+      parameters:
+        - in: path
+          name: quoteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Reopened job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+  /marketplace/payments/confirm:
+    post:
+      operationId: confirmRepairPayment
+      tags: [marketplace]
+      summary: Verify a completed Stripe repair payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentConfirmationInput" }
+      responses:
+        "200":
+          description: Updated repair job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+        "409":
+          description: Payment is not complete
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+components:
+  schemas:
+    InventoryItem:
+      type: object
+      required: [id, userId, category, name, manufacturer, model, serialNumber, purchaseDate, warrantyStartDate, warrantyEndDate, notes, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        category:
+          type: string
+          enum: [kitchen_appliances, heating_equipment, tvs_electronics, plumbing_fixtures, garden_equipment]
+        name: { type: string }
+        manufacturer: { type: ["string", "null"] }
+        model: { type: ["string", "null"] }
+        serialNumber: { type: ["string", "null"] }
+        purchaseDate: { type: ["string", "null"], format: date }
+        warrantyStartDate: { type: ["string", "null"], format: date }
+        warrantyEndDate: { type: ["string", "null"], format: date }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    InventoryItemInput:
+      type: object
+      required: [category, name]
+      properties:
+        category:
+          type: string
+          enum: [kitchen_appliances, heating_equipment, tvs_electronics, plumbing_fixtures, garden_equipment]
+        name: { type: string, minLength: 1, maxLength: 160 }
+        manufacturer: { type: ["string", "null"], maxLength: 120 }
+        model: { type: ["string", "null"], maxLength: 120 }
+        serialNumber: { type: ["string", "null"], maxLength: 160 }
+        purchaseDate: { type: ["string", "null"], format: date }
+        warrantyStartDate: { type: ["string", "null"], format: date }
+        warrantyEndDate: { type: ["string", "null"], format: date }
+        notes: { type: ["string", "null"], maxLength: 1000 }
+    InventoryItemUpdate:
+      allOf:
+        - $ref: "#/components/schemas/InventoryItemInput"
+      required: []
+    InventoryItemDetail:
+      type: object
+      required: [item, documents, reminders, repairs]
+      properties:
+        item: { $ref: "#/components/schemas/InventoryItem" }
+        documents: { type: array, items: { $ref: "#/components/schemas/InventoryDocument" } }
+        reminders: { type: array, items: { $ref: "#/components/schemas/InventoryReminder" } }
+        repairs: { type: array, items: { $ref: "#/components/schemas/InventoryRepairRecord" } }
+    InventoryDocument:
+      type: object
+      required: [id, itemId, title, documentType, objectPath, contentType, sizeBytes, createdAt]
+      properties:
+        id: { type: string }
+        itemId: { type: string }
+        title: { type: string }
+        documentType: { type: string }
+        objectPath: { type: string, pattern: "^/objects/" }
+        contentType: { type: string }
+        sizeBytes: { type: integer, minimum: 1 }
+        createdAt: { type: string }
+    InventoryDocumentInput:
+      type: object
+      required: [title, documentType, objectPath, contentType, sizeBytes, uploadToken, expiresAt]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        documentType: { type: string, minLength: 1, maxLength: 80 }
+        objectPath: { type: string, pattern: "^/objects/" }
+        contentType: { type: string, minLength: 1, maxLength: 160 }
+        sizeBytes: { type: integer, minimum: 1, maximum: 62914560 }
+        uploadToken: { type: string, minLength: 16 }
+        expiresAt: { type: string, format: date-time }
+    InventoryReminder:
+      type: object
+      required: [id, itemId, title, dueDate, notes, completed, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        itemId: { type: string }
+        title: { type: string }
+        dueDate: { type: string, format: date }
+        notes: { type: ["string", "null"] }
+        completed: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    InventoryReminderInput:
+      type: object
+      required: [title, dueDate]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        dueDate: { type: string, format: date }
+        notes: { type: ["string", "null"], maxLength: 1000 }
+    InventoryReminderUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 160 }
+        dueDate: { type: string, format: date }
+        notes: { type: ["string", "null"], maxLength: 1000 }
+        completed: { type: boolean }
+    InventoryRepairRecord:
+      type: object
+      required: [id, itemId, diagnosisId, marketplaceJobId, marketplaceQuoteId, fault, diagnosis, quotePence, beforeMediaRefs, afterMediaRefs, finalRepair, finalCostPence, completedDate, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        itemId: { type: string }
+        diagnosisId: { type: ["string", "null"] }
+        marketplaceJobId: { type: ["string", "null"] }
+        marketplaceQuoteId: { type: ["string", "null"] }
+        fault: { type: string }
+        diagnosis: { type: string }
+        quotePence: { type: ["integer", "null"], minimum: 0 }
+        beforeMediaRefs: { type: array, items: { type: string, pattern: "^/objects/" } }
+        afterMediaRefs: { type: array, items: { type: string, pattern: "^/objects/" } }
+        finalRepair: { type: string }
+        finalCostPence: { type: ["integer", "null"], minimum: 0 }
+        completedDate: { type: ["string", "null"], format: date }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    InventoryRepairRecordInput:
+      type: object
+      required: [fault, diagnosis, finalRepair]
+      properties:
+        diagnosisId: { type: ["string", "null"] }
+        marketplaceJobId: { type: ["string", "null"] }
+        marketplaceQuoteId: { type: ["string", "null"] }
+        fault: { type: string, minLength: 1, maxLength: 1000 }
+        diagnosis: { type: string, minLength: 1, maxLength: 2000 }
+        quotePence: { type: ["integer", "null"], minimum: 0 }
+        beforeMediaRefs: { type: array, items: { type: string, pattern: "^/objects/" }, maxItems: 20 }
+        afterMediaRefs: { type: array, items: { type: string, pattern: "^/objects/" }, maxItems: 20 }
+        finalRepair: { type: string, minLength: 1, maxLength: 2000 }
+        finalCostPence: { type: ["integer", "null"], minimum: 0 }
+        completedDate: { type: ["string", "null"], format: date }
+    InventoryRepairRecordUpdate:
+      allOf:
+        - $ref: "#/components/schemas/InventoryRepairRecordInput"
+      required: []
+    RepairReportSelection:
+      type: object
+      required: [includeItem, includeModel, includeProblem, includeDiagnosis, includeSafetyWarnings, includeQuestions, includeRepairRecord, mediaRefs]
+      properties:
+        includeItem: { type: boolean }
+        includeModel: { type: boolean }
+        includeProblem: { type: boolean }
+        includeDiagnosis: { type: boolean }
+        includeSafetyWarnings: { type: boolean }
+        includeQuestions: { type: boolean }
+        includeRepairRecord: { type: boolean }
+        mediaRefs: { type: array, items: { type: string, pattern: "^/objects/" }, maxItems: 20 }
+    RepairReportShareInput:
+      type: object
+      required: [itemId, repairRecordId, problem, questions, selection]
+      properties:
+        itemId: { type: string, minLength: 1 }
+        repairRecordId: { type: ["string", "null"] }
+        problem: { type: ["string", "null"], maxLength: 2000 }
+        questions: { type: ["string", "null"], maxLength: 2000 }
+        selection: { $ref: "#/components/schemas/RepairReportSelection" }
+    RepairReportShare:
+      type: object
+      required: [id, itemId, url, createdAt, expiresAt]
+      properties:
+        id: { type: string }
+        itemId: { type: string }
+        url: { type: string }
+        createdAt: { type: string }
+        expiresAt: { type: ["string", "null"] }
+    RepairReport:
+      type: object
+      required: [id, createdAt, expiresAt, fields]
+      properties:
+        id: { type: string }
+        createdAt: { type: string }
+        expiresAt: { type: ["string", "null"] }
+        fields: { type: object, additionalProperties: true }
+    AccountDeletionResult:
+      type: object
+      required: [deleted]
+      properties:
+        deleted: { type: boolean, const: true }
+    HelpChatInput:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, minLength: 1, maxLength: 2000 }
+        priorTurns:
+          type: array
+          maxItems: 12
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role: { type: string, enum: [user, assistant] }
+              content: { type: string, minLength: 1, maxLength: 2000 }
+    HelpChatResult:
+      type: object
+      required: [answer]
+      properties:
+        answer: { type: string }
+    DiagnosisAssistantInput:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, minLength: 2, maxLength: 500 }
+        history:
+          type: array
+          maxItems: 8
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role: { type: string, enum: [user, assistant] }
+              content: { type: string, minLength: 1, maxLength: 1000 }
+    DiagnosisAssistantResult:
+      type: object
+      required: [answer, safetyLevel]
+      properties:
+        answer: { type: string }
+        safetyLevel: { type: string, enum: [safe, caution, professional] }
+    PremiumSyncResult:
+      type: object
+      required: [isPremium]
+      properties:
+        isPremium: { type: boolean }
+    Notification:
+      type: object
+      required: [id, type, title, body, createdAt]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        jobId: { type: string }
+        href: { type: string }
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    DiagnosisInput:
+      type: object
+      properties:
+        itemType:
+          type: string
+          minLength: 1
+          maxLength: 80
+        symptom:
+          type: string
+          minLength: 1
+          maxLength: 500
+        media:
+          oneOf:
+            - $ref: "#/components/schemas/UploadedMedia"
+            - type: "null"
+        mediaName:
+          type: ["string", "null"]
+          maxLength: 255
+          deprecated: true
+        applianceDetails:
+          $ref: "#/components/schemas/ApplianceDetails"
+        errorCode:
+          type: ["string", "null"]
+          maxLength: 80
+        inventoryItemId:
+          type: ["string", "null"]
+          maxLength: 160
+        coverageAnswers:
+          $ref: "#/components/schemas/CoverageAnswers"
+      required:
+        - itemType
+        - symptom
+    ApplianceDetails:
+      type: object
+      properties:
+        brand:
+          type: ["string", "null"]
+          maxLength: 120
+        modelNumber:
+          type: ["string", "null"]
+          maxLength: 120
+        serialNumber:
+          type: ["string", "null"]
+          maxLength: 160
+        productType:
+          type: ["string", "null"]
+          maxLength: 120
+        approximateAge:
+          type: ["string", "null"]
+          maxLength: 80
+    CoverageAnswers:
+      type: object
+      properties:
+        manufacturerWarranty:
+          type: string
+          enum: [yes, no, unsure]
+        appliancePlan:
+          type: string
+          enum: [yes, no, unsure]
+        homeInsurance:
+          type: string
+          enum: [yes, no, unsure]
+        recentlyRepaired:
+          type: string
+          enum: [yes, no, unsure]
+      required: [manufacturerWarranty, appliancePlan, homeInsurance, recentlyRepaired]
+    CoverageGuidance:
+      type: object
+      properties:
+        route:
+          type: string
+          enum: [manufacturer_warranty, appliance_plan, home_insurance, recent_repair, check_coverage, paid_repair]
+        heading:
+          type: string
+        nextSteps:
+          type: array
+          items:
+            type: string
+      required: [route, heading, nextSteps]
+    ApplianceLabelInput:
+      type: object
+      required: [media]
+      properties:
+        media:
+          $ref: "#/components/schemas/UploadedMedia"
+    ApplianceLabelResult:
+      type: object
+      required: [details]
+      properties:
+        details:
+          $ref: "#/components/schemas/ApplianceDetails"
+    DiagnosisResult:
+      type: object
+      properties:
+        id:
+          type: string
+        itemType:
+          type: string
+        applianceDetails:
+          $ref: "#/components/schemas/ApplianceDetails"
+        headline:
+          type: string
+        likelyProblem:
+          type: string
+        otherPossibleCauses:
+          type: array
+          items:
+            type: string
+        distinguishingEvidence:
+          type: array
+          items:
+            type: string
+        professionalInspection:
+          type: string
+        confidence:
+          type: integer
+          minimum: 0
+          maximum: 100
+        repairCostMin:
+          type: integer
+          minimum: 0
+        repairCostMax:
+          type: integer
+          minimum: 0
+        partsCostMin:
+          type: integer
+          minimum: 0
+        partsCostMax:
+          type: integer
+          minimum: 0
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        safetyLevel:
+          type: string
+          enum: [safe, caution, professional]
+        safetyNote:
+          type: string
+        nextSteps:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+        mediaEvidence:
+          type: array
+          items:
+            type: string
+        audioEvidence:
+          type: array
+          items:
+            type: string
+        errorCode:
+          type: ["string", "null"]
+        errorCodeMeaning:
+          type: ["string", "null"]
+        errorCodeSafeChecks:
+          type: array
+          items:
+            type: string
+        errorCodeResetAdvice:
+          type: ["string", "null"]
+        errorCodeProfessionalNeeded:
+          type: ["string", "null"]
+        errorCodeCommonParts:
+          type: array
+          items:
+            type: string
+        partsNeeded:
+          type: array
+          items:
+            type: string
+        requiredTools:
+          type: array
+          items:
+            type: string
+        diySuitability:
+          type: string
+          enum: [yes, with_caution, no]
+        professionalParts:
+          type: array
+          items:
+            type: string
+        coverageAnswers:
+          $ref: "#/components/schemas/CoverageAnswers"
+        coverageGuidance:
+          $ref: "#/components/schemas/CoverageGuidance"
+        mediaAnalysed:
+          type: boolean
+      required:
+        - id
+        - itemType
+        - headline
+        - likelyProblem
+        - confidence
+        - repairCostMin
+        - repairCostMax
+        - partsCostMin
+        - partsCostMax
+        - difficulty
+        - safetyLevel
+        - safetyNote
+        - nextSteps
+        - generatedAt
+        - mediaEvidence
+        - audioEvidence
+        - errorCodeSafeChecks
+        - errorCodeCommonParts
+        - partsNeeded
+        - requiredTools
+        - diySuitability
+        - professionalParts
+        - coverageAnswers
+        - coverageGuidance
+        - mediaAnalysed
+    UploadedMedia:
+      type: object
+      properties:
+        objectPath:
+          type: string
+          pattern: "^/objects/"
+        uploadToken:
+          type: string
+          minLength: 16
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        contentType:
+          type: string
+          minLength: 1
+          description: MIME type for an image, video, or short audio recording.
+        size:
+          type: integer
+          minimum: 1
+          maximum: 62914560
+      required:
+        - objectPath
+        - uploadToken
+        - name
+        - contentType
+        - size
+    UploadUrlRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+      required:
+        - name
+        - size
+        - contentType
+    UploadUrlResponse:
+      type: object
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+        uploadToken:
+          type: string
+        expiresAt:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/UploadUrlRequest"
+      required:
+        - uploadURL
+        - objectPath
+        - uploadToken
+        - expiresAt
+        - metadata
+    EngineerRegistrationInput:
+      type: object
+      required: [displayName, postcode, skills]
+      properties:
+        displayName: { type: string, minLength: 2, maxLength: 80 }
+        postcode: { type: string, minLength: 3, maxLength: 8 }
+        skills:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 2, maxLength: 50 }
+    EngineerProfile:
+      allOf:
+        - $ref: "#/components/schemas/EngineerRegistrationInput"
+        - type: object
+          required: [userId, isActive, identityVerified, businessDetailsVerified, insuranceEvidenceProvided, qualificationsProvided, rating, reviewCount, completedJobs, payoutsEnabled]
+          properties:
+            userId: { type: string }
+            isActive: { type: boolean }
+            identityVerified: { type: boolean }
+            businessDetailsVerified: { type: boolean }
+            insuranceEvidenceProvided: { type: boolean }
+            qualificationsProvided: { type: boolean }
+            rating: { type: number, minimum: 0, maximum: 5 }
+            reviewCount: { type: integer, minimum: 0 }
+            completedJobs: { type: integer, minimum: 0 }
+            payoutsEnabled: { type: boolean }
+    RepairJobBase:
+      type: object
+      required: [title, itemType, category, description, postcode]
+      properties:
+        diagnosisId: { type: ["string", "null"] }
+        title: { type: string, minLength: 3, maxLength: 120 }
+        itemType: { type: string, minLength: 2, maxLength: 80 }
+        category:
+          type: string
+          enum: [appliance, plumbing, painting, electrical]
+        description: { type: string, minLength: 10, maxLength: 1200 }
+        postcode: { type: string, minLength: 3, maxLength: 8 }
+    RepairJobInput:
+      allOf:
+        - $ref: "#/components/schemas/RepairJobBase"
+        - type: object
+          properties:
+            photoRefs:
+              type: array
+              maxItems: 5
+              items: { $ref: "#/components/schemas/UploadedMedia" }
+    RepairJob:
+      allOf:
+        - $ref: "#/components/schemas/RepairJobBase"
+        - type: object
+          required: [id, customerId, status, acceptedQuoteId, paymentStatus, platformCommissionPence, engineerPayoutPence, payoutReleasedAt, createdAt, photoRefs, timeline, reminders]
+          properties:
+            id: { type: string }
+            customerId: { type: string }
+            status:
+              type: string
+              enum: [open, pending_payment, accepted, completed, cancelled]
+            acceptedQuoteId: { type: ["string", "null"] }
+            paymentStatus:
+              type: string
+              enum: [unpaid, pending, paid, transfer_pending, transferred]
+            platformCommissionPence: { type: ["integer", "null"], minimum: 0 }
+            engineerPayoutPence: { type: ["integer", "null"], minimum: 0 }
+            payoutReleasedAt: { type: ["string", "null"], format: date-time }
+            createdAt: { type: string }
+            photoRefs:
+              type: array
+              maxItems: 5
+              items: { type: string, pattern: "^/objects/" }
+            applianceDetails:
+              $ref: "#/components/schemas/ApplianceDetails"
+            timeline:
+              type: array
+              items: { $ref: "#/components/schemas/RepairTimelineEvent" }
+            reminders:
+              type: array
+              items: { $ref: "#/components/schemas/RepairReminder" }
+    PublicRepairJob:
+      type: object
+      required: [id, title, itemType, category, description, postcode, status, createdAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        itemType: { type: string }
+        category:
+          type: string
+          enum: [appliance, plumbing, painting, electrical]
+        description: { type: string }
+        postcode: { type: string }
+        status:
+          type: string
+          enum: [open]
+        createdAt: { type: string, format: date-time }
+    MarketplaceBlockInput:
+      type: object
+      required: [blockedUserId]
+      properties:
+        blockedUserId: { type: string, minLength: 1 }
+    MarketplaceBlock:
+      allOf:
+        - $ref: "#/components/schemas/MarketplaceBlockInput"
+        - type: object
+          required: [createdAt]
+          properties:
+            createdAt: { type: string, format: date-time }
+    MarketplaceReportInput:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType:
+          type: string
+          enum: [job, quote, message, repairer]
+        targetId: { type: string, minLength: 1 }
+        reason:
+          type: string
+          enum: [unsafe, fraud, abuse, inappropriate, other]
+        details: { type: string, maxLength: 1000 }
+    MarketplaceReport:
+      allOf:
+        - $ref: "#/components/schemas/MarketplaceReportInput"
+        - type: object
+          required: [id, reporterId, status, createdAt]
+          properties:
+            id: { type: string }
+            reporterId: { type: string }
+            targetUserId: { type: ["string", "null"] }
+            status:
+              type: string
+              enum: [open, resolved, dismissed]
+            reviewedBy: { type: ["string", "null"] }
+            reviewedAt: { type: ["string", "null"], format: date-time }
+            resolutionNotes: { type: ["string", "null"] }
+            createdAt: { type: string, format: date-time }
+    MarketplaceReportUpdateInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [resolved, dismissed] }
+        resolutionNotes: { type: string, maxLength: 1000 }
+    RepairTimelineEvent:
+      type: object
+      required: [key, label, completed, completedAt]
+      properties:
+        key:
+          type: string
+          enum: [diagnosis_created, repairer_contacted, quote_received, repair_booked, parts_ordered, repair_completed, follow_up]
+        label: { type: string }
+        completed: { type: boolean }
+        completedAt: { type: ["string", "null"], format: date-time }
+    RepairTimelineInput:
+      type: object
+      required: [step, completed]
+      properties:
+        step:
+          type: string
+          enum: [parts_ordered, repair_completed]
+        completed: { type: boolean }
+    RepairReminder:
+      type: object
+      required: [id, kind, label, dueAt, completed, createdAt]
+      properties:
+        id: { type: string }
+        kind:
+          type: string
+          enum: [clean_filter, check_seals, replace_batteries, boiler_service, review_repair, custom]
+        label: { type: string }
+        dueAt: { type: string, format: date-time }
+        completed: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    RepairReminderInput:
+      type: object
+      required: [kind, dueAt]
+      properties:
+        kind:
+          type: string
+          enum: [clean_filter, check_seals, replace_batteries, boiler_service, review_repair, custom]
+        dueAt: { type: string, format: date-time }
+    RepairReminderUpdateInput:
+      type: object
+      required: [completed]
+      properties:
+        completed: { type: boolean }
+    JobResponseInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [interested, declined] }
+    JobResponse:
+      type: object
+      required: [id, jobId, engineerId, engineerName, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        jobId: { type: string }
+        engineerId: { type: string }
+        engineerName: { type: string }
+        status: { type: string, enum: [interested, declined] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    JobMessageInput:
+      type: object
+      required: [body, engineerId]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 1000 }
+        engineerId: { type: string, minLength: 1 }
+    JobMessage:
+      type: object
+      required: [id, jobId, threadEngineerId, senderId, senderRole, senderDisplayLabel, body, createdAt]
+      properties:
+        id: { type: string }
+        jobId: { type: string }
+        senderId: { type: string }
+        threadEngineerId: { type: string }
+        senderRole: { type: string, enum: [customer, engineer] }
+        senderDisplayLabel: { type: string }
+        body: { type: string, maxLength: 1000 }
+        createdAt: { type: string }
+    RepairQuoteInput:
+      type: object
+      required: [message, estimatedDuration, laborPence, toolsAndMaterialsPence, callOutFeePence, estimatedArrival, warranty, earliestAvailability]
+      properties:
+        message: { type: string, minLength: 5, maxLength: 800 }
+        estimatedDuration: { type: string, minLength: 2, maxLength: 80 }
+        laborPence: { type: integer, minimum: 100, maximum: 1000000 }
+        toolsAndMaterialsPence: { type: integer, minimum: 0, maximum: 1000000 }
+        callOutFeePence: { type: integer, minimum: 0, maximum: 1000000 }
+        estimatedArrival: { type: string, minLength: 2, maxLength: 80 }
+        warranty: { type: string, minLength: 2, maxLength: 120 }
+        earliestAvailability: { type: string, minLength: 2, maxLength: 80 }
+    RepairQuote:
+      allOf:
+        - $ref: "#/components/schemas/RepairQuoteInput"
+        - type: object
+          required: [id, jobId, engineerId, engineerName, engineerRating, engineerReviewCount, engineerCompletedJobs, engineerIdentityVerified, engineerBusinessDetailsVerified, engineerInsuranceEvidenceProvided, engineerQualificationsProvided, subtotalPence, premiumDiscountPence, totalPence, agreedTotalPence, currentOfferPence, priceOffers, platformCommissionPence, engineerPayoutPence, status, createdAt]
+          properties:
+            id: { type: string }
+            jobId: { type: string }
+            engineerId: { type: string }
+            engineerName: { type: string }
+            engineerRating: { type: number, minimum: 0, maximum: 5 }
+            engineerReviewCount: { type: integer, minimum: 0 }
+            engineerCompletedJobs: { type: integer, minimum: 0 }
+            engineerIdentityVerified: { type: boolean }
+            engineerBusinessDetailsVerified: { type: boolean }
+            engineerInsuranceEvidenceProvided: { type: boolean }
+            engineerQualificationsProvided: { type: boolean }
+            subtotalPence: { type: integer }
+            premiumDiscountPence: { type: integer }
+            totalPence: { type: integer }
+            agreedTotalPence: { type: ["integer", "null"], minimum: 1 }
+            currentOfferPence: { type: ["integer", "null"], minimum: 1 }
+            priceOffers:
+              type: array
+              items: { $ref: "#/components/schemas/RepairPriceOffer" }
+            platformCommissionPence: { type: integer, minimum: 0 }
+            engineerPayoutPence: { type: integer, minimum: 0 }
+            status:
+              type: string
+              enum: [pending, negotiating, pending_payment, accepted, rejected]
+            createdAt: { type: string }
+    RepairPriceOffer:
+      type: object
+      required: [id, quoteId, proposerRole, amountPence, message, status, createdAt]
+      properties:
+        id: { type: string }
+        quoteId: { type: string }
+        proposerRole:
+          type: string
+          enum: [customer, engineer]
+        amountPence: { type: integer, minimum: 1 }
+        message: { type: string, maxLength: 300 }
+        status:
+          type: string
+          enum: [pending, awaiting_proposer, accepted, declined, superseded]
+        createdAt: { type: string, format: date-time }
+    RepairPriceOfferInput:
+      type: object
+      required: [amountPence]
+      properties:
+        amountPence: { type: integer, minimum: 1, maximum: 3000000 }
+        message: { type: string, maxLength: 300 }
+    RepairPriceOfferAgreementResponse:
+      type: object
+      required: [quote, agreementComplete, checkoutUrl]
+      properties:
+        quote: { $ref: "#/components/schemas/RepairQuote" }
+        agreementComplete: { type: boolean }
+        checkoutUrl: { type: ["string", "null"], format: uri }
+    CheckoutResponse:
+      type: object
+      required: [checkoutUrl]
+      properties:
+        checkoutUrl: { type: string, format: uri }
+    PayoutOnboardingResponse:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string, format: uri }
+    PaymentConfirmationInput:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId: { type: string, minLength: 8, maxLength: 255 }
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "FixMate",
+    "description": "Camera-first repair guidance for UK households: understand likely faults, safety risks, repair costs, and the next step.",
+    "slug": "fixmate-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "fixmate-mobile",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "bundleIdentifier": "fixmaterepair",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "FixMate uses your camera to capture photos or short videos of household repair problems for diagnosis.",
+        "NSMicrophoneUsageDescription": "FixMate can include sound when you record a repair video because noises may help identify the fault.",
+        "NSPhotoLibraryUsageDescription": "FixMate lets you choose a photo or short video of a household repair problem for diagnosis."
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          }
+        ]
+      }
+    },
+    "android": {
+      "package": "com.fixmate.mobile",
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FixMate lets you choose a photo or short video of a household repair problem for diagnosis.",
+          "cameraPermission": "FixMate uses your camera to capture photos or short videos of household repair problems for diagnosis.",
+          "microphonePermission": "FixMate can include sound when you record a repair video because noises may help identify the fault."
+        }
+      ],
+      "@clerk/expo",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#eef3f0"
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

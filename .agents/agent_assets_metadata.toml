@@ -1,0 +1,72 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ennnDfGLru2T8IyQkNdXT"
+uri = "file://screenshots/fixmate-ios-ready-home.jpg"
+type = "image"
+title = "FixMate app preview"
+description = "Latest FixMate mobile home-screen preview showing the camera-first repair flow."
+logical_id = "55f41da5-d61b-402d-afb8-43d546ec3125"
+content_hash = "sha256:c21ec57bb1c2d37a3c49966b4cc042c993fa69d910f4ed368476df34dd854f84"
+size = 33183
+mtime_ms = 1789088206714
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:ffcf84ef-4e7f-4e0a-8fca-2805f2dba4dd/55f41da5-d61b-402d-afb8-43d546ec3125/0516604c-0296-45a6-934d-b7b8d316b088"
+storage_version_token = "1789168963988764"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "F_DIpEVE6RtSY-kdzstjT"
+uri = "file://artifacts/fixmate-mobile/assets/images/icon.png"
+type = "image"
+title = "FixMate app logo"
+description = "The FixMate app icon used in the mobile app configuration."
+logical_id = "9e3504a3-36ab-48a9-b912-415efc8772e1"
+content_hash = "sha256:c75eae643be600573b1712daf8f1af5a9d33e3ab0c3530fc9676667dbe3592a3"
+size = 1309772
+mtime_ms = 1788992006093
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:ffcf84ef-4e7f-4e0a-8fca-2805f2dba4dd/9e3504a3-36ab-48a9-b912-415efc8772e1/47774460-8d49-476c-a0ac-ea01d4d20c5d"
+storage_version_token = "1789168984546258"
+content_type = "image/png"
+
+[[outputs]]
+id = "NHLSlkwrRcbLfc22M4BU1"
+uri = "file://screenshots/fixmate-logo-240x240.png"
+type = "image"
+title = "FixMate logo — 240 × 240"
+description = "240 × 240 PNG version of the FixMate app logo."
+logical_id = "1dfc0139-41a0-4956-90d9-37fbd7eba54e"
+content_hash = "sha256:47e15cb930ec93b1d7633d6e9490a285add26af389887afc4fcbdeb33abcb9cc"
+size = 54107
+mtime_ms = 1789169004857
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:ffcf84ef-4e7f-4e0a-8fca-2805f2dba4dd/1dfc0139-41a0-4956-90d9-37fbd7eba54e/42c432b1-ace9-4f7e-81b6-9dedabcea600"
+storage_version_token = "1789169009779470"
+content_type = "image/png"
+
+[[outputs]]
+id = "hTwrbYhDiXqkNq5Y8gc_P"
+uri = "file://artifacts/fixmate-mobile/assets/images/fixmate-logo-512.png"
+type = "image"
+title = "FixMate logo — 512×512 PNG"
+description = "The FixMate app logo resized to exactly 512×512 pixels for Google Play or other store listings."
+logical_id = "494fdb77-0fe8-4be9-8256-6704036266c8"
+content_hash = "sha256:2bc9a59b14e7fd53951c82fedba1fc855505e313d8f3c0d34315fe34631495ef"
+size = 265610
+mtime_ms = 1789568092968
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:ffcf84ef-4e7f-4e0a-8fca-2805f2dba4dd/494fdb77-0fe8-4be9-8256-6704036266c8/df6d09d9-e45d-4482-8c18-ea505b2e01c6"
+storage_version_token = "1789568098721209"
+content_type = "image/png"
+
+[[outputs]]
+id = "13nHwE_BZW8RwxCjjPxeI"
+uri = "file://artifacts/fixmate-mobile/assets/images/fixmate-featured-1024x500.png"
+type = "image"
+title = "FixMate Google Play featured graphic — 1024×500 PNG"
+description = "A branded 1024×500 PNG featuring the FixMate logo and household repair marketplace messaging. File size is under 15 MB."
+logical_id = "a2bd0c91-270c-43ad-a3e6-5fd1f8ff3e35"
+content_hash = "sha256:65c8fe0ce1190a315902326b129eb3d8a2371a65ec5b63420b429a52e9da7a0e"
+size = 126863
+mtime_ms = 1789568520756
+storage_uri = "gcs://replit-rams-assets-archer/rams/assets/repl:ffcf84ef-4e7f-4e0a-8fca-2805f2dba4dd/a2bd0c91-270c-43ad-a3e6-5fd1f8ff3e35/b121cb1b-df7a-4fae-9b1a-2f3791df4ecc"
+storage_version_token = "1789568534095457"
+content_type = "image/png"

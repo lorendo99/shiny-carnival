@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "FixMate"
+description = "A mobile-first repair companion that helps people identify what's wrong with broken household items, understand likely repair costs, and take the next safe step toward fixing them."
+version = "1.0.0"
+id = "artifacts/fixmate"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22933
+
+[services.development]
+run = "pnpm --filter @workspace/fixmate run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fixmate", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/fixmate/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22933"
+BASE_PATH = "/"

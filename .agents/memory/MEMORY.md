@@ -1,0 +1,19 @@
+- [Stripe connector and Sync compatibility](stripe-sync-compatibility.md) — direct Stripe API works, but validate Sync migrations before making API startup depend on them.
+- [Stripe marketplace transfer model](stripe-marketplace-transfers.md) — delayed transfers are not escrow; the platform owns fee, refund, and chargeback exposure.
+- [React Query production deduplication](react-query-production-deduplication.md) — keep React Query deduped in Vite or production hooks lose their provider context.
+- [Marketplace visibility and privacy](marketplace-visibility-privacy.md) — open jobs reveal only postcode areas; mutual agreement reserves the job and reveals the full code to the winner.
+- [Labour marketplace direction](labour-marketplace-focus.md) — FixMate's marketplace should lead with post, offer, award, progress, and completion rather than repair diagnosis.
+- [Expo tab platform fallback](expo-tab-platform-fallback.md) — Native liquid-glass tabs must be guarded to iOS; use classic tabs on web and Android so previews render.
+- [Expo Go social sign-in redirects](expo-go-social-signin.md) — let `makeRedirectUri()` choose the runtime callback; don't force the installed-app scheme in Expo Go.
+- [FixMate mobile visual direction](fixmate-mobile-visual-direction.md) — borrow the selected dark cottagecore aesthetic, not finance features; preserve repair flows.
+- [Premium repair saving](premium-repair-saving.md) — present 15% as an estimate; engineers submit the final price and the server must not apply it automatically.
+- [RevenueCat Test Store product replacement](revenuecat-test-product-replacement.md) — detach legacy package links first; archive products with transactions because RevenueCat will not delete them.
+- [Mobile subscription analytics](mobile-subscription-analytics.md) — use app-specific funnel events alongside RevenueCat; web analytics alone misses native subscription behavior.
+- [Account deletion and financial records](account-deletion-financial-records.md) — delete user content, but de-identify marketplace records that must remain for legal or payment obligations.
+- [Marketplace moderation](marketplace-moderation.md) — safety reports are admin-reviewed through a Clerk user ID allow-list; deletion removes blocks and de-identifies report records.
+- [Camera-first diagnosis entry](camera-first-diagnosis-entry.md) — evidence can be selected before safety triage, but uploads must remain gated until the safety check is complete.
+- [Media analysis runtime](media-analysis-runtime.md) — diagnosis media validation and extraction require workspace-level FFmpeg tooling.
+- [Expo Launch Clerk native setup](expo-launch-clerk-pod-setup.md) — Clerk's native iOS package needs its Expo config plugin and SDK-aligned native dependencies before publishing.
+- [RevenueCat project isolation](revenuecat-project-isolation.md) — verify the connected catalog belongs to FixMate; production native builds must never fall back to Test Store access.
+- [Hearthstone local ledger scope](hearthstone-local-ledger.md) — example balances are illustrative; initial receipt and movement data stays on-device without bank sync or OCR.
+- [Static artifact SEO prerender](static-artifact-seo-prerender.md) — Replit static files can shadow wildcard rewrites, while Vite preview may still return the SPA shell for nested routes.

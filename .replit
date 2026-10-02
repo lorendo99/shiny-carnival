@@ -1,0 +1,33 @@
+modules = ["nodejs-24", "python-base-3.13", "postgresql-16"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[objectStorage]
+defaultBucketID = "replit-objstore-c38a426b-b136-4612-9b8b-092ad4a14257"
+
+[userenv]
+
+[userenv.development]
+EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = "test_DolzgpIcxKmOuCPhNxHGMnMBYaP"
+REVENUECAT_PROJECT_ID = "proj416e25ee"
+REVENUECAT_TEST_STORE_APP_ID = "appeacf6f9fa6"
+[nix]
+channel = "stable-25_05"
+packages = ["ffmpeg"]
