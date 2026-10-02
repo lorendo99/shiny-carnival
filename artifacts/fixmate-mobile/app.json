@@ -40,6 +40,7 @@
       "favicon": "./assets/images/icon.png"
     },
     "plugins": [
+      "./plugins/with-codemagic-android-signing",
       "expo-router",
       [
         "expo-image-picker",
