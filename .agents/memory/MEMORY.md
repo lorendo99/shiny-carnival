@@ -17,3 +17,4 @@
 - [RevenueCat project isolation](revenuecat-project-isolation.md) — verify the connected catalog belongs to FixMate; production native builds must never fall back to Test Store access.
 - [Hearthstone local ledger scope](hearthstone-local-ledger.md) — example balances are illustrative; initial receipt and movement data stays on-device without bank sync or OCR.
 - [Static artifact SEO prerender](static-artifact-seo-prerender.md) — Replit static files can shadow wildcard rewrites, while Vite preview may still return the SPA shell for nested routes.
+- [GitHub empty-repo imports](github-empty-repo-imports.md) — seed the first branch with the Contents API before using Git Data API to publish a repository snapshot.
