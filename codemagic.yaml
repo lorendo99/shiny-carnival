@@ -1,0 +1,28 @@
+# CI validation only. This workflow does not sign or publish store builds.
+workflows:
+  fixmate-mobile-ci:
+    name: FixMate Mobile CI
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      node: v22.13.1
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install pnpm
+        script: npm install --global pnpm@10.26.1
+      - name: Install FixMate Mobile workspace dependencies
+        script: pnpm install --filter "@workspace/fixmate-mobile..." --frozen-lockfile
+      - name: Typecheck FixMate Mobile
+        script: pnpm --filter @workspace/fixmate-mobile run typecheck
+      - name: Generate native projects
+        script: pnpm --filter @workspace/fixmate-mobile exec expo prebuild --no-install --clean
+      - name: Export Expo bundles
+        script: pnpm --filter @workspace/fixmate-mobile exec expo export --platform all
+    artifacts:
+      - artifacts/fixmate-mobile/dist/**
