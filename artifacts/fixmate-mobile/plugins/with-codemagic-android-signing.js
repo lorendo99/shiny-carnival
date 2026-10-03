@@ -70,7 +70,7 @@ function configureGradle(contents) {
 
     contents = contents.replace(
       versionCodePattern,
-      '$1versionCode (System.getenv()["CM_BUILD_NUMBER"] ?: "1").toInteger()',
+      '$1versionCode = (System.getenv()["CM_BUILD_NUMBER"] ?: "1").toInteger()',
     );
   }
 
